@@ -1,0 +1,5 @@
+region: <aws region>
+stage: <deployment stage name>
+profile: <aws profile>
+DEPLOYMENT_S3_BUCKET: <S3 deployment bucket name>
+AccountId: <aws account id>

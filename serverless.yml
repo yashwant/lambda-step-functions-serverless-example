@@ -1,0 +1,82 @@
+service: serverlessStepFunctions
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
+
+frameworkVersion: ">=1.1.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  profile: ${file(./aws_params.yml):profile}
+  stage: ${file(./aws_params.yml):stage}
+  region: ${file(./aws_params.yml):region}
+  deploymentBucket: ${file(./aws_params.yml):DEPLOYMENT_S3_BUCKET}
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action: 
+        - "states:StartExecution"
+      Resource:
+        - "*"
+
+  environment:
+    AccountId: ${file(./aws_params.yml):AccountId}
+
+functions:
+  function1:
+    handler: handler.hello1
+  function2:
+    handler: handler.hello2
+  function3:
+    handler: handler.hello3
+  function4:
+    handler: handler.hello4
+  function5:
+    handler: handler.hello5
+
+stepFunctions:
+  stateMachines:
+    hellostepfunc1:
+      # alarms:
+      #   topics:
+      #     alarm: "arn:aws:sns:${self:provider.region}:${file(./aws_params.yml):AccountId}:NotifyMe"
+      #     insufficientData: "arn:aws:sns:${self:provider.region}:${file(./aws_params.yml):AccountId}:NotifyMe"
+      name: myStateMachine-${self:service}-${self:provider.region}
+      events:
+        - http:
+            path: function1
+            method: get
+      definition:
+        Comment: "An example of the Amazon States Language using an AWS Lambda Function"
+        StartAt: function1
+        States:
+          function1:
+            Type: Task
+            Resource: "arn:aws:lambda:${self:provider.region}:${self:provider.environment.AccountId}:function:${self:service}-${self:provider.stage}-function1"
+            Next: function2
+          function2:
+            Type: Task
+            Resource: "arn:aws:lambda:${self:provider.region}:${self:provider.environment.AccountId}:function:${self:service}-${self:provider.stage}-function2"
+            Next: function3
+          function3:
+            Type: Task
+            Resource: "arn:aws:lambda:${self:provider.region}:${self:provider.environment.AccountId}:function:${self:service}-${self:provider.stage}-function3"
+            Next: function4
+          function4:
+            Type: Task
+            Resource: "arn:aws:lambda:${self:provider.region}:${self:provider.environment.AccountId}:function:${self:service}-${self:provider.stage}-function4"
+            Next: function5
+          function5:
+            Type: Task
+            Resource: "arn:aws:lambda:${self:provider.region}:${self:provider.environment.AccountId}:function:${self:service}-${self:provider.stage}-function5"
+            End: true
+
+# resources:
+#   Outputs:
+#     MyStateMachine:
+#       Description: The ARN of the "MyStateMachine" state machine
+#       Value:
+#         Ref: "MyStateMachine-${self:service}-${self:provider.region}"
+
